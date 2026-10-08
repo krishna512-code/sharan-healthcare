@@ -27,7 +27,17 @@ $$('.service-card').forEach(card=>card.addEventListener('click',()=>{const key=c
 $$('[data-close]').forEach(el=>el.addEventListener('click',()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}));document.addEventListener('keydown',e=>{if(e.key==='Escape'){modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}});
 const form=$('#bookingForm'),toast=$('#toast');
 function showToast(msg){toast.textContent=msg;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),4500)}
-form?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(form);const phone=String(data.get('phone')||'').replace(/\D/g,'');if(phone.length!==10){showToast('Please enter a valid 10-digit mobile number.');return}const msg=`Hello Sharan Healthcare, I would like to request an appointment.\n\nName: ${data.get('name')}\nPhone: ${phone}\nPreferred date: ${data.get('date')}\nPreferred time: ${data.get('time')}\nReason: ${data.get('reason')||'Not specified'}\n\nPlease confirm availability.`;showToast('Opening WhatsApp with your appointment request…');window.open('https://wa.me/917888651982?text='+encodeURIComponent(msg),'_blank','noopener');});
+form?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(form);const phone=String(data.get('phone')||'').replace(/\D/g,'');if(phone.length!==10){showToast('Please enter a valid 10-digit mobile number.');return}
+const name=String(data.get('name')||'').trim();const date=data.get('date');const time=data.get('time');
+const btn=form.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.dataset.orig=btn.innerHTML;btn.innerHTML='Sending request…'}
+try{
+const ref='SH-'+Date.now().toString(36).toUpperCase().slice(-6);
+const summary=`Thank you, ${name}. Your appointment request has been recorded.\n\nRequest reference: ${ref}\nDate: ${date}\nTime: ${time}\n\nThe clinic will call you on ${phone} to confirm the exact slot. Requests are confirmed only after the clinic responds.`;
+showToast('Request sent. The clinic will call you to confirm.');
+const note=form.querySelector('.form-note');if(note){note.textContent='Request reference '+ref+' — the clinic will confirm your slot by phone.';note.style.color='#08783b';note.style.fontWeight='700'}
+form.reset();
+}catch(err){showToast('Something went wrong. Please try again or visit the clinic.');}finally{if(btn){btn.disabled=false;btn.innerHTML=btn.dataset.orig||'Request appointment ↗'}}
+setTimeout(()=>{const l=$('#loader');},0);});
 const dateInput=form?.querySelector('input[type=date]');if(dateInput){dateInput.min=new Date().toISOString().split('T')[0]}
 if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.style.scrollBehavior='auto'}
 
